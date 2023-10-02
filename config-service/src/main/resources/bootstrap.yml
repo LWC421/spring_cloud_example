@@ -1,0 +1,6 @@
+encrypt:
+  key: abcdefge
+#  key-store:
+#    location: file:///C:\Users\Administrator\Desktop\spring_cloud_example\keystore
+#    password: test1234
+#    alias: apiEncryptionKey
