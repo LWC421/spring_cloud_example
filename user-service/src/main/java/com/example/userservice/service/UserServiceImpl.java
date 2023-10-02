@@ -1,9 +1,11 @@
 package com.example.userservice.service;
 
+import com.example.userservice.client.OrderServiceClient;
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.jpa.UserEntity;
 import com.example.userservice.jpa.UserRepository;
 import com.example.userservice.vo.ResponseOrder;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,14 +17,20 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService{
   
   private UserRepository userRepository;
   private BCryptPasswordEncoder passwordEncoder;
   
-  public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder){
-      this.userRepository = userRepository;
-      this.passwordEncoder = passwordEncoder;
+  OrderServiceClient orderServiceClient;
+  
+  public UserServiceImpl(UserRepository userRepository,
+                         BCryptPasswordEncoder passwordEncoder,
+                         OrderServiceClient orderServiceClient){
+    this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
+    this.orderServiceClient = orderServiceClient;
   }
   
   @Override
@@ -48,6 +56,11 @@ public class UserServiceImpl implements UserService{
       throw new UsernameNotFoundException("User Not Found");
     }
     UserDto userDto = new ModelMapper().map(userEntity, UserDto.class);
+    
+    
+    /* Feign Client사용하여 부르기 */
+    String testUserId = orderServiceClient.getOrders(userId);
+    log.info(testUserId);
     
     List<ResponseOrder> orders = new ArrayList<>();
     userDto.setOrders(orders);

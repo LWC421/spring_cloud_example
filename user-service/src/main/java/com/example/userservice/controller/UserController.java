@@ -84,4 +84,9 @@ public class UserController {
     
     return ResponseEntity.status(HttpStatus.OK).body(returnValue);
   }
+  
+  @GetMapping("/")
+  public void getUserByUserId(String userId){
+  
+  }
 }
