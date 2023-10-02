@@ -33,6 +33,10 @@ eureka:
 greeting:
   message: Hello First App
 
+loggin:
+  level:
+    com.example.userservice.client: DEBUG
+
 management:
   endpoints:
     web:

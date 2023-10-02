@@ -5,6 +5,7 @@ import com.example.userservice.dto.UserDto;
 import com.example.userservice.jpa.UserEntity;
 import com.example.userservice.jpa.UserRepository;
 import com.example.userservice.vo.ResponseOrder;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -23,7 +24,8 @@ public class UserServiceImpl implements UserService{
   private UserRepository userRepository;
   private BCryptPasswordEncoder passwordEncoder;
   
-  OrderServiceClient orderServiceClient;
+  private OrderServiceClient orderServiceClient;
+  
   
   public UserServiceImpl(UserRepository userRepository,
                          BCryptPasswordEncoder passwordEncoder,
@@ -59,8 +61,8 @@ public class UserServiceImpl implements UserService{
     
     
     /* Feign Client사용하여 부르기 */
+    /* ErrorDecoder를 이용하게된다 */
     String testUserId = orderServiceClient.getOrders(userId);
-    log.info(testUserId);
     
     List<ResponseOrder> orders = new ArrayList<>();
     userDto.setOrders(orders);
