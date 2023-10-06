@@ -2,6 +2,7 @@ package com.example.orderservice.controller;
 
 import com.example.orderservice.dto.OrderDto;
 import com.example.orderservice.messagequeue.KafkaProducer;
+import com.example.orderservice.messagequeue.OrderProducer;
 import com.example.orderservice.service.OrderService;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -17,12 +18,16 @@ public class OrderController {
   OrderService orderService;
   KafkaProducer kafkaProducer;
   
+  OrderProducer orderProducer;
+  
   public OrderController(Environment env,
                          OrderService orderService,
-                         KafkaProducer kafkaProducer) {
+                         KafkaProducer kafkaProducer,
+                         OrderProducer orderProducer) {
     this.env = env;
     this.orderService = orderService;
     this.kafkaProducer = kafkaProducer;
+    this.orderProducer = orderProducer;
   }
   
   @GetMapping("/health_check")
@@ -39,6 +44,7 @@ public class OrderController {
     
     
     kafkaProducer.send("example-catalog-topic", orderDto);
+    orderProducer.send("orders", orderDto); //DB에도 넣을 수 있도록 하자
     
     return ResponseEntity.status(HttpStatus.CREATED).body(null);
   }
