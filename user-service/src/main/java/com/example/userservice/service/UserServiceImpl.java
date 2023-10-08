@@ -9,6 +9,8 @@ import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,13 +28,17 @@ public class UserServiceImpl implements UserService{
   
   private OrderServiceClient orderServiceClient;
   
+  private CircuitBreakerFactory circuitBreakerFactory;
+  
   
   public UserServiceImpl(UserRepository userRepository,
                          BCryptPasswordEncoder passwordEncoder,
-                         OrderServiceClient orderServiceClient){
+                         OrderServiceClient orderServiceClient,
+                         CircuitBreakerFactory circuitBreakerFactory){
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.orderServiceClient = orderServiceClient;
+    this.circuitBreakerFactory = circuitBreakerFactory;
   }
   
   @Override
@@ -59,13 +65,13 @@ public class UserServiceImpl implements UserService{
     }
     UserDto userDto = new ModelMapper().map(userEntity, UserDto.class);
     
+    log.info("Before call order microservice");
+    CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
+    List<ResponseOrder> orderList = (List<ResponseOrder>) circuitBreaker.run( () -> orderServiceClient.getOrders(userId),
+      throwable -> new ArrayList<ResponseOrder>());
+    log.info("After call order microservice");
     
-    /* Feign Client사용하여 부르기 */
-    /* ErrorDecoder를 이용하게된다 */
-    String testUserId = orderServiceClient.getOrders(userId);
-    
-    List<ResponseOrder> orders = new ArrayList<>();
-    userDto.setOrders(orders);
+    userDto.setOrders(orderList);
     
     return userDto;
   }
